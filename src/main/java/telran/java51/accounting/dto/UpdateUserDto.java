@@ -3,10 +3,8 @@ package telran.java51.accounting.dto;
 import lombok.Getter;
 
 @Getter
-public class CreateAccountDto {
+public class UpdateUserDto {
 	
-    String login;
-    String password;
     String firstName;
     String lastName;
 
