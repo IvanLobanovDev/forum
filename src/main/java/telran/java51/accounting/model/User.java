@@ -21,6 +21,7 @@ public class User {
 	
 	@Id
     String login;
+	@Setter
     String password;
     @Setter
     String firstName;

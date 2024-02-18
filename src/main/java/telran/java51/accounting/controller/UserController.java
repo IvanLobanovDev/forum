@@ -27,12 +27,12 @@ public class UserController {
 	public UserDto registerUser(@RequestBody CreateUserDto createUserDto) {
 		return userService.registerUser(createUserDto);
 	}
+	
 
-	@PostMapping("/login")
-	public UserDto login() {
-		// TODO Auto-generated method stub
-		return null;
-	}
+//	@PostMapping("/login")
+//	public UserDto login() {
+//		return userService.getUser(userId);
+//	}
 
 	@DeleteMapping("/user/{user}")
 	public UserDto deleteUser(@PathVariable String user) {
