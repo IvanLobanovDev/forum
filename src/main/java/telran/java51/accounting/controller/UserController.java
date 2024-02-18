@@ -1,11 +1,14 @@
 package telran.java51.accounting.controller;
 
+import java.util.Base64;
+
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -29,10 +32,13 @@ public class UserController {
 	}
 	
 
-//	@PostMapping("/login")
-//	public UserDto login() {
-//		return userService.getUser(userId);
-//	}
+	@PostMapping("/login")
+	public UserDto login(@RequestHeader("Authorization") String token) {
+		token = token.split(" ")[1];
+		//передаем массив байт, получаем стринг
+		String credentials = new String(Base64.getDecoder().decode(token));
+		return userService.getUser(credentials.split(":")[0]);
+	}
 
 	@DeleteMapping("/user/{user}")
 	public UserDto deleteUser(@PathVariable String user) {
