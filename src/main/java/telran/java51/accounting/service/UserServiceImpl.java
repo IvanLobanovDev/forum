@@ -87,3 +87,5 @@ public class UserServiceImpl implements UserService {
 }
 
 //Пофиксить changePassword и все методы начинающиеся с эндпоинтом posts тоже не должны требовать аутэнитифкацию
+
+//Check token
