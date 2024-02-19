@@ -72,9 +72,10 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public boolean changePassword(String user, String newPassword) {
-		// TODO Auto-generated method stub
-		return false;
+	public void changePassword(String user, String newPassword) {
+		User userAccount = userRepository.findById(user).orElseThrow(() -> new UserNotFoundException());
+		userAccount.setPassword(newPassword);
+		userRepository.save(userAccount);
 	}
 
 	@Override
@@ -84,3 +85,5 @@ public class UserServiceImpl implements UserService {
 	}
 
 }
+
+//Пофиксить changePassword и все методы начинающиеся с эндпоинтом posts тоже не должны требовать аутэнитифкацию
