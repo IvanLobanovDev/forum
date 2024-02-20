@@ -74,7 +74,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void changePassword(String user, String newPassword) {
 		User userAccount = userRepository.findById(user).orElseThrow(() -> new UserNotFoundException());
-		userAccount.setPassword(newPassword);
+		String password = BCrypt.hashpw(newPassword, BCrypt.gensalt());
+		userAccount.setPassword(password);
 		userRepository.save(userAccount);
 	}
 
