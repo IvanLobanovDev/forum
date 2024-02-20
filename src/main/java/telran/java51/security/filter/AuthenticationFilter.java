@@ -52,7 +52,10 @@ public class AuthenticationFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return !(HttpMethod.POST.matches(method) && path.matches("/account/register"));
+		return !(HttpMethod.POST.matches(method) && (path.matches("/account/register") || 
+				                                     path.matches("/forum/posts/tags") || 
+				                                     path.matches("/forum/posts/period")) || 
+				HttpMethod.GET.matches(method) && path.matches("/forum/posts/author/\\S+"));
 	}
 
 //	Логин будет 0 элемент, пароль 1 элемент
