@@ -2,6 +2,7 @@ package telran.java51.accounting.service;
 
 import org.mindrot.jbcrypt.BCrypt;
 import org.modelmapper.ModelMapper;
+import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,7 @@ import telran.java51.accounting.model.User;
 
 @Service
 @RequiredArgsConstructor
-public class UserServiceImpl implements UserService {
+public class UserServiceImpl implements UserService, CommandLineRunner {
 	
 	final UserRepository userRepository;
 	final ModelMapper modelMapper;
@@ -58,7 +59,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public RoleDto addUserRole(String user, String role) {
 		User userAccount = userRepository.findById(user).orElseThrow(() -> new UserNotFoundException());
-		userAccount.getRoles().add(role);
+		userAccount.addRole(role);
 		userRepository.save(userAccount);
 		return modelMapper.map(userAccount, RoleDto.class);
 	}
@@ -66,7 +67,7 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public RoleDto deleteUserRole(String user, String role) {
 		User userAccount = userRepository.findById(user).orElseThrow(() -> new UserNotFoundException());
-		userAccount.getRoles().remove(role);
+		userAccount.removeRole(role);
 		userRepository.save(userAccount);
 		return modelMapper.map(userAccount, RoleDto.class);
 	}
@@ -83,6 +84,18 @@ public class UserServiceImpl implements UserService {
 	public UserDto getUser(String user) {
 		User userAccount = userRepository.findById(user).orElseThrow(() -> new UserNotFoundException());
 		return modelMapper.map(userAccount, UserDto.class);
+	}
+
+	@Override
+	public void run(String... args) throws Exception {
+		if(!userRepository.existsById("admin")) {
+			String password = BCrypt.hashpw("admin", BCrypt.gensalt());
+			User userAccount = new User("admin", password, "", "");
+			userAccount.addRole("MODERATOR");
+			userAccount.addRole("ADMINISTRATOR");
+			userRepository.save(userAccount);
+		}
+		
 	}
 
 }
