@@ -22,6 +22,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import telran.java51.accounting.dao.UserRepository;
 import telran.java51.accounting.model.User;
+import telran.java51.security.context.SecurityContext;
 
 @Component
 @RequiredArgsConstructor
@@ -29,6 +30,7 @@ import telran.java51.accounting.model.User;
 public class AuthenticationFilter implements Filter {
 
 	final UserRepository userRepository;
+	final SecurityContext securityContext;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -36,20 +38,27 @@ public class AuthenticationFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			User userAccount;
-			try {
-				String[] credentials = getCredentials(request.getHeader("Authorization"));
-				userAccount = userRepository.findById(credentials[0]).orElseThrow(RuntimeException::new);
-				if (!BCrypt.checkpw(credentials[1], userAccount.getPassword())) {
-					throw new RuntimeException();
-				}
-			} catch (Exception e) {
-				// в случае ошибки, важно прервать работу фильтра, чтобы программа не добралась
-				// до chain.doFilter(request, response);
-				response.sendError(401);
-				return;
+			String sessionId = request.getSession().getId();
+			telran.java51.security.model.User user = securityContext.getUserBySessionId(sessionId);
+			if (user == null) {
+				try {
+					String[] credentials = getCredentials(request.getHeader("Authorization"));
+					User userAccount = userRepository.findById(credentials[0]).orElseThrow(RuntimeException::new);
+					if (!BCrypt.checkpw(credentials[1], userAccount.getPassword())) {
+						throw new RuntimeException();
+					}
+//					После первого логина создаем userPrincipal и кладем в securityContext
+//					Далее проверка пользователя будет выполняться, как securityContext.getUserBySessionId(sessionId)
+					user = new telran.java51.security.model.User(userAccount.getLogin(), userAccount.getRoles());
+					securityContext.addUserSession(sessionId, user);
+				} catch (Exception e) {
+					// в случае ошибки, важно прервать работу фильтра, чтобы программа не добралась
+					// до chain.doFilter(request, response);
+					response.sendError(401);
+					return;
+				} 
 			}
-			request = new WrappedRequest(request, userAccount.getLogin(), userAccount.getRoles());
+			request = new WrappedRequest(request, user.getName(), user.getRoles());
 		}
 		chain.doFilter(request, response);
 
