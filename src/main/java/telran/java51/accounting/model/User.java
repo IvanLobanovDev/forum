@@ -41,7 +41,7 @@ public class User {
 	}
     
 	public boolean removeRole(String role) {
-		return roles.add(role);
+		return roles.remove(role);
 	}
 
 }
