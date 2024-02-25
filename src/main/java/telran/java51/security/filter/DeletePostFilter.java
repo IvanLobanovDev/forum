@@ -18,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import telran.java51.accounting.dao.UserRepository;
 import telran.java51.accounting.model.User;
 import telran.java51.post.dao.PostRepository;
-import telran.java51.post.dto.exceptions.PostNotFoundException;
 import telran.java51.post.model.Post;
 
 @Component
@@ -26,7 +25,6 @@ import telran.java51.post.model.Post;
 @RequiredArgsConstructor
 public class DeletePostFilter implements Filter {
 
-	final UserRepository userRepository;
 	final PostRepository postRepository;
 
 	@Override
@@ -34,14 +32,17 @@ public class DeletePostFilter implements Filter {
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
-		User userAccount = userRepository.findById(request.getUserPrincipal().getName()).get();
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			Principal principal = request.getUserPrincipal();
+			telran.java51.security.model.User user = (telran.java51.security.model.User) request.getUserPrincipal();
 			String[] arr = request.getServletPath().split("/");
 			String id = arr[arr.length - 1];
-			Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException());
-			if (!(userAccount.getRoles().contains("ADMINISTRATOR") || userAccount.getRoles().contains("MODERATOR")
-					|| principal.getName().equalsIgnoreCase(post.getAuthor()))) {
+			Post post = postRepository.findById(id).orElse(null);
+			if(post == null) {
+				response.sendError(404);
+				return;
+			}
+			if (!(user.getRoles().contains("MODERATOR")
+					|| user.getName().equalsIgnoreCase(post.getAuthor()))) {
 				response.sendError(403, "Permition denied");
 				return;
 			}

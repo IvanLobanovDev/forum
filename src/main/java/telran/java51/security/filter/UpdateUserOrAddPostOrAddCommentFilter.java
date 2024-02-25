@@ -13,9 +13,6 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import telran.java51.accounting.dao.UserRepository;
-import telran.java51.accounting.model.User;
 
 @Component
 @Order(30)

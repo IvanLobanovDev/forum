@@ -19,25 +19,21 @@ import telran.java51.accounting.dao.UserRepository;
 import telran.java51.accounting.model.User;
 
 @Component
-@RequiredArgsConstructor
 @Order(40)
 public class DeleteUserFilter implements Filter {
-
-	final UserRepository userRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
-		User userAccount = userRepository.findById(request.getUserPrincipal().getName()).get();
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
 //			проверяем, что у пользователя есть либо роль админ, либо принципал соответствует последнему элементу эндпоинта
-			Principal principal = request.getUserPrincipal();
+			telran.java51.security.model.User user = (telran.java51.security.model.User) request.getUserPrincipal();
 			String[] arr = request.getServletPath().split("/");
-			String user = arr[arr.length - 1];
+			String userFromPath = arr[arr.length - 1];
 
-			if (!(userAccount.getRoles().contains("ADMINISTRATOR") || principal.getName().equalsIgnoreCase(user))) {
+			if (!(user.getRoles().contains("ADMINISTRATOR") || user.getName().equalsIgnoreCase(userFromPath))) {
 				response.sendError(403, "Permition denied");
 				return;
 			}

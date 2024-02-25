@@ -26,7 +26,6 @@ import telran.java51.post.model.Post;
 @RequiredArgsConstructor
 public class UpdatePostFilter implements Filter {
 
-	final UserRepository userRepository;
 	final PostRepository postRepository;
 	
 	
@@ -35,12 +34,16 @@ public class UpdatePostFilter implements Filter {
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
-		User userAccount = userRepository.findById(request.getUserPrincipal().getName()).get();
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
+			Principal principal = request.getUserPrincipal();
 			String[] arr = request.getServletPath().split("/");
 			String id = arr[arr.length - 1];
-			Post post = postRepository.findById(id).orElseThrow(() -> new PostNotFoundException());
-			if (!userAccount.getLogin().equalsIgnoreCase(post.getAuthor())) {
+			Post post = postRepository.findById(id).orElse(null);
+			if(post == null) {
+				response.sendError(404);
+				return;
+			}
+			if (!principal.getName().equalsIgnoreCase(post.getAuthor())) {
 				response.sendError(403, "Permition denied");
 				return;
 			}

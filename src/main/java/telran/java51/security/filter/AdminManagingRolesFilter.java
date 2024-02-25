@@ -17,12 +17,10 @@ import telran.java51.accounting.dao.UserRepository;
 import telran.java51.accounting.model.User;
 
 @Component
-@RequiredArgsConstructor
 //очередность, меньший индекс выполняется перед большим
 @Order(20)
 public class AdminManagingRolesFilter implements Filter {
 
-	final UserRepository userRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -30,8 +28,8 @@ public class AdminManagingRolesFilter implements Filter {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			User userAccount = userRepository.findById(request.getUserPrincipal().getName()).get();
-			if (!userAccount.getRoles().contains("ADMINISTRATOR")) {
+			telran.java51.security.model.User user = (telran.java51.security.model.User) request.getUserPrincipal();
+			if (!user.getRoles().contains("ADMINISTRATOR")) {
 				response.sendError(403, "Permition denied");
 				return;
 			}
