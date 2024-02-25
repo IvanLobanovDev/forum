@@ -1,7 +1,6 @@
 package telran.java51.security.filter;
 
 import java.io.IOException;
-import java.security.Principal;
 
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpMethod;
@@ -19,22 +18,18 @@ import telran.java51.accounting.dao.UserRepository;
 import telran.java51.accounting.model.User;
 
 @Component
-@Order(25)
-@RequiredArgsConstructor
-public class AddPostOrCommentFilter implements Filter {
+@Order(30)
+public class UpdateUserOrAddPostOrAddCommentFilter implements Filter {
 
-	final UserRepository userRepository;
-	
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
 			throws IOException, ServletException {
 		HttpServletRequest request = (HttpServletRequest) req;
 		HttpServletResponse response = (HttpServletResponse) resp;
-		User userAccount = userRepository.findById(request.getUserPrincipal().getName()).get();
 		if (checkEndPoint(request.getMethod(), request.getServletPath())) {
-			String[] arr = request.getServletPath().split("/");
-			String author = arr[arr.length - 1];
-			if (!userAccount.getLogin().equalsIgnoreCase(author)) {
+//			проверяем, что принципал соответствует последнему элементу эндпоинта
+			if (!request.getUserPrincipal().getName().equalsIgnoreCase(
+					request.getServletPath().split("/")[request.getServletPath().split("/").length - 1])) {
 				response.sendError(403, "Permition denied");
 				return;
 			}
@@ -43,7 +38,8 @@ public class AddPostOrCommentFilter implements Filter {
 	}
 
 	private boolean checkEndPoint(String method, String path) {
-		return (HttpMethod.POST.matches(method) && path.matches("/forum/post/\\w+"))
+		return HttpMethod.PUT.matches(method) && path.matches("/account/user/\\w+")
+				|| (HttpMethod.POST.matches(method) && path.matches("/forum/post/\\w+"))
 				|| (HttpMethod.PUT.matches(method) && path.matches("/forum/post/\\w+/comment/\\w+"));
 	}
 
