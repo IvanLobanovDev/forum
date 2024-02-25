@@ -11,6 +11,7 @@ import telran.java51.accounting.dto.RoleDto;
 import telran.java51.accounting.dto.UpdateUserDto;
 import telran.java51.accounting.dto.UserDto;
 import telran.java51.accounting.dto.exceptions.UserNotFoundException;
+import telran.java51.accounting.model.Role;
 import telran.java51.accounting.model.User;
 
 @Service
@@ -56,17 +57,17 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public RoleDto addUserRole(String user, String role) {
+	public RoleDto addUserRole(String user, Role role) {
 		User userAccount = userRepository.findById(user).orElseThrow(() -> new UserNotFoundException());
-		userAccount.getRoles().add(role);
+		userAccount.addRole(role);
 		userRepository.save(userAccount);
 		return modelMapper.map(userAccount, RoleDto.class);
 	}
 
 	@Override
-	public RoleDto deleteUserRole(String user, String role) {
+	public RoleDto deleteUserRole(String user, Role role) {
 		User userAccount = userRepository.findById(user).orElseThrow(() -> new UserNotFoundException());
-		userAccount.getRoles().remove(role);
+		userAccount.removeRole(role);
 		userRepository.save(userAccount);
 		return modelMapper.map(userAccount, RoleDto.class);
 	}

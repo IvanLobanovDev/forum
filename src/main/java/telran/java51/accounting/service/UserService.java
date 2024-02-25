@@ -4,6 +4,7 @@ import telran.java51.accounting.dto.CreateUserDto;
 import telran.java51.accounting.dto.RoleDto;
 import telran.java51.accounting.dto.UpdateUserDto;
 import telran.java51.accounting.dto.UserDto;
+import telran.java51.accounting.model.Role;
 
 public interface UserService {
 	
@@ -15,9 +16,9 @@ public interface UserService {
 	
 	UserDto updateUser(UpdateUserDto updateUserDto, String user);
 	
-	RoleDto addUserRole(String user, String role);
+	RoleDto addUserRole(String user, Role role);
 	
-	RoleDto deleteUserRole(String user, String role);
+	RoleDto deleteUserRole(String user, Role role);
 	
 	boolean changePassword(String user, String newPassword);
 	

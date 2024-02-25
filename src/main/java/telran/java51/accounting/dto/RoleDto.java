@@ -5,6 +5,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import telran.java51.accounting.model.Role;
 
 @Getter
 @AllArgsConstructor
@@ -12,6 +13,6 @@ import lombok.NoArgsConstructor;
 public class RoleDto {
 	
     String login;
-    Set<String > roles;
+    Set<Role> roles;
 
 }
