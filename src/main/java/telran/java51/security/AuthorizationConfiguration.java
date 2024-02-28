@@ -3,19 +3,23 @@ package telran.java51.security;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.authorization.AuthoritiesAuthorizationManager;
 import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 
+import lombok.RequiredArgsConstructor;
 import telran.java51.accounting.model.Role;
+import telran.java51.post.dao.PostRepository;
+import telran.java51.post.dto.exceptions.PostNotFoundException;
 
 @Configuration
+@RequiredArgsConstructor
 public class AuthorizationConfiguration {
-	
+
+	final PostRepository postRepository;
+
 	@Bean
 	public SecurityFilterChain web(HttpSecurity http) throws Exception {
 		http.httpBasic(Customizer.withDefaults());
@@ -36,15 +40,22 @@ public class AuthorizationConfiguration {
 					.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
 //					Кастомный метод сверяющий автора поста и имя  authentication совпадают
 				.requestMatchers(HttpMethod.PUT, "/forum/post/{id}")
-					.access(new WebExpressionAuthorizationManager("@customSecurity.checkPostAuthor(#id, authentication.name)"))
-//				.access(new AuthoritiesAuthorizationManager<T>() {
-//					
+//					.access(new WebExpressionAuthorizationManager("@customSecurity.checkPostAuthor(#id, authentication.name)"))
+//				.access(new AuthorizationManager<Object>() {
+//
 //					@Override
-//					public AuthorizationDecision check(Supplier<Authrntication> )
+//					public AuthorizationDecision check(Supplier<Authentication> authentication, Object object) {
+//						
+//						authentication.get().getName();
+//						return null;
+//					}
 //				})
+				.access((authentication, context) ->
+			    new AuthorizationDecision(postRepository.findById("#id")
+			    		.orElseThrow(() -> new PostNotFoundException()).getAuthor().equals(authentication.get().getName())))
 				.anyRequest()
 					.authenticated()
-				
+	
 				);
 		return http.build();
 	}
