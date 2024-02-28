@@ -1,15 +1,11 @@
 package telran.java51.security;
 
-import java.util.function.Supplier;
-
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authorization.AuthorizationDecision;
-import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 
@@ -49,14 +45,22 @@ public class AuthorizationConfiguration {
 //
 //					@Override
 //					public AuthorizationDecision check(Supplier<Authentication> authentication, T object) {
-//						postRepository.findById(objec)
 //						authentication.get().getName();
 //						return null;
 //					}
 //				})
-				.access((authentication, context) ->
-			    new AuthorizationDecision(postRepository.findById(context.getRequest().getServletPath().split("/"))
+					.access((authentication, context) ->
+			    new AuthorizationDecision(postRepository
+			    		.findById(context.getRequest().getServletPath()
+			    				.split("/")[context.getRequest().getServletPath().split("/").length - 1])
 			    		.orElseThrow(() -> new PostNotFoundException()).getAuthor().equals(authentication.get().getName())))
+				.requestMatchers(HttpMethod.DELETE, "/forum/post/{id}")
+					.access((authentication, context) ->
+			    new AuthorizationDecision(postRepository
+			    		.findById(context.getRequest().getServletPath()
+			    				.split("/")[context.getRequest().getServletPath().split("/").length - 1])
+			    		.orElseThrow(() -> new PostNotFoundException()).getAuthor().equals(authentication.get().getName()) 
+			    		|| authentication.get().getAuthorities().stream().anyMatch(r -> r.getAuthority().equals("ROLE_MODERATOR"))))
 				.anyRequest()
 					.authenticated()
 	
