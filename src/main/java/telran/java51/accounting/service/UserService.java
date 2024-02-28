@@ -24,4 +24,6 @@ public interface UserService {
 	
 	UserDto getUser(String user);
 
+	void run(String... args) throws Exception;
+
 }
