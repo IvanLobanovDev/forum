@@ -1,11 +1,15 @@
 package telran.java51.security;
 
+import java.util.function.Supplier;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authorization.AuthorizationDecision;
+import org.springframework.security.authorization.AuthorizationManager;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.access.expression.WebExpressionAuthorizationManager;
 
@@ -41,17 +45,17 @@ public class AuthorizationConfiguration {
 //					Кастомный метод сверяющий автора поста и имя  authentication совпадают
 				.requestMatchers(HttpMethod.PUT, "/forum/post/{id}")
 //					.access(new WebExpressionAuthorizationManager("@customSecurity.checkPostAuthor(#id, authentication.name)"))
-//				.access(new AuthorizationManager<Object>() {
+//				.access(new AuthorizationManager<T>() {
 //
 //					@Override
-//					public AuthorizationDecision check(Supplier<Authentication> authentication, Object object) {
-//						
+//					public AuthorizationDecision check(Supplier<Authentication> authentication, T object) {
+//						postRepository.findById(objec)
 //						authentication.get().getName();
 //						return null;
 //					}
 //				})
 				.access((authentication, context) ->
-			    new AuthorizationDecision(postRepository.findById("#id")
+			    new AuthorizationDecision(postRepository.findById(context.getRequest().getServletPath().split("/"))
 			    		.orElseThrow(() -> new PostNotFoundException()).getAuthor().equals(authentication.get().getName())))
 				.anyRequest()
 					.authenticated()
