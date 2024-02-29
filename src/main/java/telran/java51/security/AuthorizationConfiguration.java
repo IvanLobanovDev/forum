@@ -19,28 +19,40 @@ import telran.java51.post.dto.exceptions.PostNotFoundException;
 public class AuthorizationConfiguration {
 
 	final PostRepository postRepository;
+	final CustomWebSecurity customWebSecurity;
 
 	@Bean
 	public SecurityFilterChain web(HttpSecurity http) throws Exception {
 		http.httpBasic(Customizer.withDefaults());
 		http.csrf(csrf -> csrf.disable());
-		http.authorizeHttpRequests(authorize -> authorize
-				.requestMatchers("/account/register", "/forum/posts/**")
-					.permitAll()
-				.requestMatchers("/account/user/{login}/role/{role}")
-					.hasRole(Role.ADMINISTRATOR.name())
+		http.authorizeHttpRequests(authorize -> authorize.requestMatchers("/account/register", "/forum/posts/**")
+				.permitAll().requestMatchers("/account/user/{login}/role/{role}").hasRole(Role.ADMINISTRATOR.name())
 				.requestMatchers(HttpMethod.PUT, "/account/user/{login}")
 //				Проверка что логин и объект authentication совпадают
-					.access(new WebExpressionAuthorizationManager("#login == authentication.name"))
+				.access(new WebExpressionAuthorizationManager("#login == authentication.name"))
 				.requestMatchers(HttpMethod.DELETE, "/account/user/{login}")
-					.access(new WebExpressionAuthorizationManager("#login == authentication.name or hasRole('ADMINISTRATOR')"))
+				.access(new WebExpressionAuthorizationManager(
+						"#login == authentication.name or hasRole('ADMINISTRATOR')"))
 				.requestMatchers(HttpMethod.POST, "/forum/post/{author}")
-					.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
+				.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
 				.requestMatchers(HttpMethod.PUT, "/forum/post/*/comment/{author}")
-					.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
+				.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
 //					Кастомный метод сверяющий автора поста и имя  authentication совпадают
+//				.requestMatchers(HttpMethod.PUT, "/forum/post/{id}")
+//					.access(new WebExpressionAuthorizationManager("@customWebSecurity.checkPostAuthor(#id, authentication.name)"))
+
+//				======== NEW SOLUTION =======
+				
 				.requestMatchers(HttpMethod.PUT, "/forum/post/{id}")
-//					.access(new WebExpressionAuthorizationManager("@customSecurity.checkPostAuthor(#id, authentication.name)"))
+				.access((authentication,
+						context) -> new AuthorizationDecision(customWebSecurity
+								.checkPostAuthor(context.getVariables().get("id"), authentication.get().getName())))
+				
+				.requestMatchers(HttpMethod.DELETE, "/forum/post/{id}")
+				.access((authentication,
+						context) -> new AuthorizationDecision(customWebSecurity
+								.checkPostAuthor(context.getVariables().get("id"), authentication.get().getName())
+								|| context.getRequest().isUserInRole(Role.MODERATOR.name())))
 //				.access(new AuthorizationManager<T>() {
 //
 //					@Override
@@ -49,22 +61,24 @@ public class AuthorizationConfiguration {
 //						return null;
 //					}
 //				})
-					.access((authentication, context) ->
-			    new AuthorizationDecision(postRepository
-			    		.findById(context.getRequest().getServletPath()
-			    				.split("/")[context.getRequest().getServletPath().split("/").length - 1])
-			    		.orElseThrow(() -> new PostNotFoundException()).getAuthor().equals(authentication.get().getName())))
-				.requestMatchers(HttpMethod.DELETE, "/forum/post/{id}")
-					.access((authentication, context) ->
-			    new AuthorizationDecision(postRepository
-			    		.findById(context.getRequest().getServletPath()
-			    				.split("/")[context.getRequest().getServletPath().split("/").length - 1])
-			    		.orElseThrow(() -> new PostNotFoundException()).getAuthor().equals(authentication.get().getName()) 
-			    		|| authentication.get().getAuthorities().stream().anyMatch(r -> r.getAuthority().equals("ROLE_MODERATOR"))))
-				.anyRequest()
-					.authenticated()
-	
-				);
+//				
+//				======== PREVIOUS SOLUTION =======
+//				
+//					.access((authentication, context) ->
+//			    new AuthorizationDecision(postRepository
+//			    		.findById(context.getRequest().getServletPath()
+//			    				.split("/")[context.getRequest().getServletPath().split("/").length - 1])
+//			    		.orElseThrow(() -> new PostNotFoundException()).getAuthor().equals(authentication.get().getName())))
+//				.requestMatchers(HttpMethod.DELETE, "/forum/post/{id}")
+//					.access((authentication, context) ->
+//			    new AuthorizationDecision(postRepository
+//			    		.findById(context.getRequest().getServletPath()
+//			    				.split("/")[context.getRequest().getServletPath().split("/").length - 1])
+//			    		.orElseThrow(() -> new PostNotFoundException()).getAuthor().equals(authentication.get().getName()) 
+//			    		|| authentication.get().getAuthorities().stream().anyMatch(r -> r.getAuthority().equals("ROLE_MODERATOR"))))
+				.anyRequest().authenticated()
+
+		);
 		return http.build();
 	}
 
