@@ -7,8 +7,7 @@ import telran.java51.post.dao.PostRepository;
 import telran.java51.post.model.Post;
 
 // Можем указать как будет называться компонент в апп контексте
-@Service("customSecurity")
-//@Service
+@Service
 @RequiredArgsConstructor
 public class CustomWebSecurity {
 	
@@ -17,7 +16,6 @@ public class CustomWebSecurity {
 	public boolean checkPostAuthor(String postId, String userName) {
 		Post post = postRepository.findById(postId).orElse(null);
 		return post != null && userName.equals(post.getAuthor());
-//		return userName.equals(post.getAuthor());
 	}
 
 }
